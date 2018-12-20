@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/baselines" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/pytorch-a2c-ppo-acktr" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/pytorch-a2c-ppo-acktr/baselines" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/pytorchbaselines" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/pytorchbaselines/baselines" vcs="Git" />
+  </component>
+</project>
