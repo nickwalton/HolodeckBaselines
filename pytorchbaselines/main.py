@@ -20,6 +20,28 @@ from a2c_ppo_acktr.utils import get_vec_normalize, update_linear_schedule, get_r
 from a2c_ppo_acktr.visualize import visdom_plot
 
 
+def show_model(render_env, actor_critic, iterations=1):
+    for _ in range(iterations):
+        done = False
+        render_obs = render_env.reset()
+        device = 'cpu'
+
+        render_recurrent_hidden_states = torch.zeros(1,
+                                                     actor_critic.recurrent_hidden_state_size, device=device)
+        render_masks = torch.zeros(1, 1, device=device)
+
+        while not done:
+            with torch.no_grad():
+                value, action, _, render_recurrent_hidden_states = actor_critic.act(
+                    render_obs, render_recurrent_hidden_states, render_masks, deterministic=True)
+
+            # Obser reward and next obs
+            render_obs, reward, done, _ = render_env.step(action)
+            render_env.render()
+
+            render_masks.fill_(0.0 if done else 1.0)
+
+
 def main(args):
     try:
         os.makedirs(args.log_dir)
@@ -43,12 +65,10 @@ def main(args):
             'Recurrent policy is not implemented for ACKTR'
 
     if args.eval_render:
-        render_env = make_vec_envs(args.env_name, args.seed + 1000, 1,
+        render_env = make_vec_envs(args.env_name, args.seed, 1,
                             None, None, args.add_timestep, device='cpu',
                             allow_early_resets=False)
 
-        # Get a render function
-        render_func = get_render_func(render_env)
 
     torch.set_num_threads(1)
     num_updates = int(args.num_env_steps) // args.num_steps // args.num_processes
@@ -163,10 +183,10 @@ def main(args):
             save_model = [save_model,
                           getattr(get_vec_normalize(envs), 'ob_rms', None)]
 
-            torch.save(save_model, os.path.join(save_path, args.env_name + ".pt"))
+            torch.save(save_model, os.path.join(save_path, args.env_name + "-AvgRwrd" + str(int(np.mean(episode_rewards))) + ".pt"))
+            print("Saving Model")
 
         total_num_steps = (j + 1) * args.num_processes * args.num_steps
-
 
         # Logs every log_interval steps
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
@@ -199,7 +219,6 @@ def main(args):
             eval_recurrent_hidden_states = torch.zeros(args.num_processes,
                             actor_critic.recurrent_hidden_state_size, device=device)
             eval_masks = torch.zeros(args.num_processes, 1, device=device)
-            render_func = get_render_func(envs)
 
             while len(eval_episode_rewards) < 10:
                 with torch.no_grad():
@@ -216,20 +235,7 @@ def main(args):
                         eval_episode_rewards.append(info['episode']['r'])
 
             if args.eval_render:
-                done = False
-                obs = render_env.reset()
-                recurrent_hidden_states = torch.zeros(1, actor_critic.recurrent_hidden_state_size)
-                masks = torch.zeros(1, 1)
-                while not done:
-                    with torch.no_grad():
-                        value, action, _, recurrent_hidden_states = actor_critic.act(
-                            obs, recurrent_hidden_states, masks)
-
-                    # Obser reward and next obs
-                    obs, reward, done, _ = render_env.step(action)
-                    render_env.render()
-
-                    masks.fill_(0.0 if done else 1.0)
+                show_model(render_env, actor_critic)
 
 
             eval_envs.close()

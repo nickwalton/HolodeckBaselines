@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from gym.spaces.box import Box
 
-import bench
+from baselines import bench
 from baselines import make_atari, wrap_deepmind
 from baselines import VecEnvWrapper
 from baselines import SubprocVecEnv

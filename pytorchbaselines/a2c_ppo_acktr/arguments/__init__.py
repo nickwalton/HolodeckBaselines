@@ -19,6 +19,8 @@ def get_args():
                         help='use generalized advantage estimation')
     parser.add_argument('--eval_render', action='store_true', default=False,
                         help='whether to render one eval')
+    parser.add_argument('--render_times', type=int, default=1,
+                        help='Times to render')
     parser.add_argument('--tau', type=float, default=0.95,
                         help='gae parameter (default: 0.95)')
     parser.add_argument('--entropy-coef', type=float, default=0.01,
